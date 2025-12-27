@@ -19,6 +19,7 @@ data Options = Options
   , optStartDate   :: Maybe Day      -- ^ スケジュール開始日
   , optNumOfDays   :: Int            -- ^ スケジュール日数
   , optRepetitions :: Int            -- ^ 繰り返し回数
+  , optNoDate      :: Bool           -- ^ 日付非表示
   , optOutputFile  :: Maybe FilePath -- ^ 出力ファイル名
   , optHelp        :: Bool           -- ^ ヘルプ表示
   }
@@ -29,6 +30,7 @@ defaultOptions = Options
   , optStartDate   = Nothing
   , optNumOfDays   = 365
   , optRepetitions = 18
+  , optNoDate      = False
   , optOutputFile  = Nothing
   , optHelp        = False
   }
@@ -50,6 +52,10 @@ options =
   , Option ['r'] ["repetitions"]
     (ReqArg (\arg opt -> opt { optRepetitions = read arg }) "NUM")
     "Number of repetitions (default: 18)"
+
+  , Option ['n'] ["no-date"]
+    (NoArg (\opt -> opt { optNoDate = True }))
+    "Do not display dates in the table"
 
   , Option ['o'] ["output"]
     (ReqArg (\arg opt -> opt { optOutputFile = Just arg }) "FILE")
@@ -137,11 +143,11 @@ lookupWork m dateStr = case parseDay dateStr of
   Nothing  -> error $ "Invalid date format: " ++ dateStr
 
 -- | 列数を明示してレンダリング（例: 18）
-renderTable :: Int -> [(Day, [[Int]])] -> Text
-renderTable maxCols rows =
+renderTable :: Bool -> Int -> [(Day, [[Int]])] -> Text
+renderTable noDate maxCols rows =
   let nCols = min maxCols (max 0 (maximum (0 : map (length . snd) rows)))
       header = renderHeader nCols
-      body   = T.concat (map (renderRow nCols) rows)
+      body   = T.concat (map (renderRow noDate nCols) rows)
   in T.concat
       [ "\\begin{tabularx}{\\linewidth}{|l", T.replicate nCols "|c", "|}\n"
       , header
@@ -167,10 +173,11 @@ renderHeader nCols =
       ]
 
 -- | 1行: 日付 + 各回のセル
-renderRow :: Int -> (Day, [[Int]]) -> Text
-renderRow nCols (day, cols0) =
+renderRow :: Bool -> Int -> (Day, [[Int]]) -> Text
+renderRow noDate nCols (day, cols0) =
   let cols = take nCols (cols0 ++ repeat [])  -- 足りない分は空セルで埋める
-      dayTxt = formatDay day                -- 日付表示（好みに応じて変更）
+      dayTxt | noDate    = T.pack "\\texttt{  /  /  }"
+             | otherwise = formatDay day                -- 日付表示（好みに応じて変更）
       cells  = map renderCell cols
   in T.concat
       [ dayTxt
@@ -226,9 +233,9 @@ latexDoc body =
   <> "\n\\end{document}\n"
 
 -- | 例: 最大232ユニット、2025-04-01から1年間のスケジュールを生成してPDF出力
-writePdf :: Schedule -> FilePath -> IO ()
-writePdf schedule fp = do
-  writeFile fp (T.unpack (latexDoc (renderTable cols schedule)))
+writePdf :: Bool -> Schedule -> FilePath -> IO ()
+writePdf noDate schedule fp = do
+  writeFile fp (T.unpack (latexDoc (renderTable noDate cols schedule)))
   callProcess "lualatex" [fp]
   callProcess "lualatex" [fp] -- ヘッダ幅をボディに合わせるため参照が必要なので2回実行
   where cols = foldl' (\acc (_, xs) -> acc `max` length xs) 0 schedule -- 全て同じ数なはず
@@ -262,6 +269,7 @@ main = do
   let unitMax    = optUnitMax opts
   let n          = optNumOfDays opts
   let repetition = optRepetitions opts
+  let noDate     = optNoDate opts
   let out        = case optOutputFile opts of
         Just fp -> fp
         Nothing -> "sched-minai-style.tex"
@@ -269,4 +277,4 @@ main = do
 
   let m = zip days (map (dayN'sWork unitMax repetition) [1..])
 
-  writePdf m out
+  writePdf noDate m out
