@@ -1,11 +1,71 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
+import Control.Monad (when)
+import Control.Monad.IO.Class (liftIO)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time
 import Data.Time.Format ()
+import System.Console.GetOpt (OptDescr(..), ArgDescr(NoArg, ReqArg), ArgOrder(Permute)
+                             , getOpt, usageInfo
+                             )
+import System.Environment (getArgs)
+import System.Exit (exitSuccess)
 import System.Process (callProcess)
+
+data Options = Options
+  { optUnitMax     :: Int            -- ^ 最大ユニット数
+  , optStartDate   :: Maybe Day      -- ^ スケジュール開始日
+  , optNumOfDays   :: Int            -- ^ スケジュール日数
+  , optRepetitions :: Int            -- ^ 繰り返し回数
+  , optOutputFile  :: Maybe FilePath -- ^ 出力ファイル名
+  , optHelp        :: Bool           -- ^ ヘルプ表示
+  }
+
+defaultOptions :: Options
+defaultOptions = Options
+  { optUnitMax     = 232
+  , optStartDate   = Nothing
+  , optNumOfDays   = 365
+  , optRepetitions = 18
+  , optOutputFile  = Nothing
+  , optHelp        = False
+  }
+
+options :: [OptDescr (Options -> Options)]
+options =
+  [ Option ['u'] ["unit-max"]
+    (ReqArg (\arg opt -> opt { optUnitMax = read arg }) "NUM")
+    "Maximum unit number (default: 232)"
+
+  , Option ['f'] ["start-date"]
+    (ReqArg (\arg opt -> opt { optStartDate = parseDay arg }) "DATE")
+    "Schedule start date in YYYY-MM-DD format (default: today)"
+
+  , Option ['d'] ["days"]
+    (ReqArg (\arg opt -> opt { optNumOfDays = read arg }) "NUM")
+    "Number of days to schedule (default: 365)"
+
+  , Option ['r'] ["repetitions"]
+    (ReqArg (\arg opt -> opt { optRepetitions = read arg }) "NUM")
+    "Number of repetitions (default: 18)"
+
+  , Option ['o'] ["output"]
+    (ReqArg (\arg opt -> opt { optOutputFile = Just arg }) "FILE")
+    "Output file name (default: table.tex)"
+
+  , Option ['h'] ["help"]
+    (NoArg (\opt -> opt { optHelp = True }))
+    "Show this help message"
+  ]
+
+compilerOpts :: [String] -> IO (Options, [String])
+compilerOpts argv =
+  case getOpt Permute options argv of
+    (o, n, []  ) -> return (foldl' (flip id) defaultOptions o, n)
+    (_, _, errs) -> ioError (userError (concat errs ++ usageInfo header options))
+  where header = "Usage: cabal run ifl -- [OPTION...] <program-file>"
 
 parseDay :: String -> Maybe Day
 parseDay = parseTimeM True defaultTimeLocale "%Y-%m-%d"
@@ -19,9 +79,10 @@ type Schedule = [(Day, [[Unit]])]
 
 
 dayN'sWork :: Unit      -- ^ Maximum unit number
+           -> Int       -- ^ Repetition number
            -> Int       -- ^ Day number
            -> [[Unit]]  -- ^ List of cycles with units to work on that day
-dayN'sWork unitMax n = map (filter p) $ map rule [1..18]
+dayN'sWork unitMax repetition n = map (filter p) $ map rule [1..repetition]
   where p :: Int -> Bool
         p m = 0 < m && m <= unitMax
         rule :: Int -> [Unit]
@@ -52,18 +113,20 @@ daysFromDay start n = take n $ iterate (addDays 1) start
 
 
 sched :: Unit      -- ^ Maximum unit number
+      -> Int       -- ^ Number of repetitions
       -> Day       -- ^ Starting day
       -> Int       -- ^ Number of days to schedule
       -> Schedule  -- ^ Generated schedule
-sched unitMax start d = zip days (map (dayN'sWork unitMax) [1..])
+sched unitMax repetition start d = zip days (map (dayN'sWork unitMax repetition) [1..])
   where days = daysFromDay start d
 
 sched' :: Unit     -- ^ Maximum unit number
+       -> Int      -- ^ Number of repetitions
        -> String   -- ^ Starting date as string
        -> Int      -- ^ Number of days to schedule
        -> Schedule -- ^ Generated schedule
-sched' unitMax dateStr d = case parseDay dateStr of
-  Just start -> sched unitMax start d
+sched' unitMax repetition dateStr d = case parseDay dateStr of
+  Just start -> sched unitMax repetition start d
   Nothing    -> error $ "Invalid date format: " ++ dateStr
 
 lookupWork :: Schedule       -- ^ Schedule to look up
@@ -73,13 +136,9 @@ lookupWork m dateStr = case parseDay dateStr of
   Just day -> lookup day m
   Nothing  -> error $ "Invalid date format: " ++ dateStr
 
--- | 既定: 列数はデータから推定し、最大18列に丸める（必要なら変更）
-renderTable :: Schedule -> Text
-renderTable = renderTableN 18
-
 -- | 列数を明示してレンダリング（例: 18）
-renderTableN :: Int -> [(Day, [[Int]])] -> Text
-renderTableN maxCols rows =
+renderTable :: Int -> [(Day, [[Int]])] -> Text
+renderTable maxCols rows =
   let nCols = min maxCols (max 0 (maximum (0 : map (length . snd) rows)))
       header = renderHeader nCols
       body   = T.concat (map (renderRow nCols) rows)
@@ -167,17 +226,47 @@ latexDoc body =
   <> "\n\\end{document}\n"
 
 -- | 例: 最大232ユニット、2025-04-01から1年間のスケジュールを生成してPDF出力
-writePdf :: Schedule -> IO ()
-writePdf schedule = do
-  writeFile "table.tex" (T.unpack (latexDoc (renderTable schedule)))
-  callProcess "lualatex" ["table.tex"]
-  callProcess "lualatex" ["table.tex"] -- ヘッダ幅をボディに合わせるため参照が必要なので2回実行
-  
+writePdf :: Schedule -> FilePath -> IO ()
+writePdf schedule fp = do
+  writeFile fp (T.unpack (latexDoc (renderTable cols schedule)))
+  callProcess "lualatex" [fp]
+  callProcess "lualatex" [fp] -- ヘッダ幅をボディに合わせるため参照が必要なので2回実行
+  where cols = foldl' (\acc (_, xs) -> acc `max` length xs) 0 schedule -- 全て同じ数なはず
+
+-- This banner generated by using `figlet -f slant sched | sed "s@\\\@\\\\\\\@g"`.
+helpMessage :: String
+helpMessage = unlines
+  [ "              __             __"
+  , "   __________/ /_  ___  ____/ /"
+  , "  / ___/ ___/ __ \\/ _ \\/ __  / "
+  , " (__  ) /__/ / / /  __/ /_/ /  "
+  , "/____/\\___/_/ /_/\\___/\\__,_/   "
+  , "                               "
+  , "Schedule Generator"
+    , "> cabal run sched -- [OPTIONS...]"
+  , usageInfo "OPTION" options
+  ]
+
 main :: IO ()
 main = do
-  let day = case parseDay "2026-01-01" of
-              Just d  -> d
-              Nothing -> error "Invalid date format"
-  let days = daysFromDay day 365
-  let m = zip days (map (dayN'sWork 232) [1..])
-  writePdf m
+  args <- getArgs
+  (opts, _) <- compilerOpts args
+
+  when (optHelp opts) $ do
+    putStr helpMessage
+    exitSuccess
+
+  startDate <- case optStartDate opts of
+    Just d  -> return d
+    Nothing -> liftIO today
+  let unitMax    = optUnitMax opts
+  let n          = optNumOfDays opts
+  let repetition = optRepetitions opts
+  let out        = case optOutputFile opts of
+        Just fp -> fp
+        Nothing -> "sched-minai-style.tex"
+  let days = daysFromDay startDate n
+
+  let m = zip days (map (dayN'sWork unitMax repetition) [1..])
+
+  writePdf m out
