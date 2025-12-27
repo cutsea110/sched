@@ -77,7 +77,10 @@ parseDay :: String -> Maybe Day
 parseDay = parseTimeM True defaultTimeLocale "%Y-%m-%d"
   
 today :: IO Day
-today = utctDay <$> getCurrentTime
+today = do
+  utcTime <- getCurrentTime
+  tz      <- getCurrentTimeZone
+  pure $ localDay $ utcToLocalTime tz utcTime
 
 type Unit     = Int
 type Cycle    = Int
