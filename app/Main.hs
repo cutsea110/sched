@@ -85,7 +85,7 @@ renderTableN maxCols rows =
       header = renderHeader nCols
       body   = T.concat (map (renderRow nCols) rows)
   in T.concat
-      [ "\\begin{tabularx}{\\linewidth}{l|", T.replicate nCols "Y", "}\n"
+      [ "\\begin{tabularx}{\\linewidth}{|l", T.replicate nCols "|c", "|}\n"
       , header
       , body
       , "\\end{tabularx}\n"
@@ -125,11 +125,25 @@ renderRow nCols (day, cols0) =
 -- | セル: [Int] を "1・2" のように連結。空なら空文字。
 -- 区切りを "," にしたいなら sep を "," に変えるだけでOK。
 renderCell :: [Int] -> Text
-renderCell xs =
-  let sep = ","
-  in case xs of
-       [] -> ""
-       _  -> T.intercalate sep (map (T.pack . show) xs)
+renderCell xs = case xs of
+  []        -> ""
+  [a]       -> tshow a
+  [a,b]     -> wrapSmall (tshow a <> ", " <> tshow b)
+  [a,b,c,d] -> wrapSmall $
+               "\\makecell[c]{"
+               <> tshow a <> ", " <> tshow b
+               <>  "\\\\"
+               <> tshow c <> ", " <> tshow d
+               <> "}"
+  _         -> wrapSmall $
+               "\\makecell[c]{"
+               <> T.intercalate "\\\\" (chunks2 (map tshow xs))
+               <> "}"
+  where tshow = T.pack . show
+        wrapSmall s = "\\smallcell{" <> s <> "}"
+        chunks2 [] = []
+        chunks2 [u] = [u]
+        chunks2 (u:v:rs) = (u <> ", " <> v) : chunks2 rs
 
 -- | 日付表示: "YYYY/MM/DD"
 formatDayJP :: Day -> Text
@@ -138,13 +152,17 @@ formatDayJP d = T.pack (formatTime defaultTimeLocale "%Y/%m/%d" d)
 -- | LaTeXドキュメント全体を生成
 latexDoc :: Text -> Text
 latexDoc body =
-  "\\documentclass[a4paper,left=6mm,right=6mm,top=8mm,bottom=8mm]{bxjsarticle}\n"
-  <> "\\usepackage{booktabs}\n"
+  "\\documentclass[a4paper]{bxjsarticle}\n"
+  <> "\\geometry{left=6mm,right=6mm,top=8mm,bottom=8mm}\n"
   <> "\\usepackage{ltablex}\n"
   <> "\\keepXColumns\n"
-  <> "\\usepackage{graphicx}\n"
   <> "\\usepackage{array}\n"
-  <> "\\newcolumntype{Y}{>{\\centering\\arraybackslash}X}\n"
+  <> "\\usepackage{makecell}\n"
+  <> "\\renewcommand\\tabularxcolumn[1]{m{#1}}\n"
+  <> "\\setlength{\\tabcolsep}{2pt}\n"
+  <> "\\renewcommand{\\arraystretch}{0.95}\n"
+  <> "\\newcommand{\\smallcell}[1]{{\\scriptsize #1}}\n"
+
   <> "\\begin{document}\n"
   <> body
   <> "\n\\end{document}\n"
@@ -154,6 +172,7 @@ writePdf :: Schedule -> IO ()
 writePdf schedule = do
   writeFile "table.tex" (T.unpack (latexDoc (renderTable schedule)))
   callProcess "lualatex" ["table.tex"]
+  callProcess "lualatex" ["table.tex"] -- ヘッダ幅をボディに合わせるため参照が必要なので2回実行
   
 main :: IO ()
 main = do
