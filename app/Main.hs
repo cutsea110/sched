@@ -100,7 +100,7 @@ dayN'sWork unitMax repetition n = map (filter p) $ map rule [1..repetition]
                   in if odd (n-a) then [n-a, n-a+1] else []
                 | 11 <= i           =
                   let a = diff4 !! (i-11)
-                  in if quad (n-a) then [n-a-3,n-a-2,n-a-1, n-a] else []
+                  in if quad (n-a) then [n-a-3, n-a-2, n-a-1, n-a] else []
                 | otherwise         = error "unexpected index in rule"
           where
             quad :: Int -> Bool
