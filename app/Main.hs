@@ -1,7 +1,12 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Main where
 
+import Data.Text (Text)
+import qualified Data.Text as T
+import qualified Data.Text.IO as TIO
 import Data.Time
 import Data.Time.Format ()
+import System.Process (callProcess)
 
 parseDay :: String -> Maybe Day
 parseDay = parseTimeM True defaultTimeLocale "%Y-%m-%d"
@@ -69,11 +74,93 @@ lookupWork m dateStr = case parseDay dateStr of
   Just day -> lookup day m
   Nothing  -> error $ "Invalid date format: " ++ dateStr
 
+-- | 既定: 列数はデータから推定し、最大18列に丸める（必要なら変更）
+renderTable :: Schedule -> Text
+renderTable = renderTableN 18
+
+-- | 列数を明示してレンダリング（例: 18）
+renderTableN :: Int -> [(Day, [[Int]])] -> Text
+renderTableN maxCols rows =
+  let nCols = min maxCols (max 0 (maximum (0 : map (length . snd) rows)))
+      header = renderHeader nCols
+      body   = T.concat (map (renderRow nCols) rows)
+  in T.concat
+      [ "\\begin{tabularx}{\\linewidth}{l|", T.replicate nCols "Y", "}\n"
+      , header
+      , body
+      , "\\end{tabularx}\n"
+      ]
+
+-- | ヘッダ: 日付 + 1回目..n回目
+renderHeader :: Int -> Text
+renderHeader nCols =
+  let cols = [T.pack (show i) | i <- [1..nCols]]
+  in T.concat
+      [ "\\hline\n"
+      , "Date & ", T.intercalate " & " cols, " \\\\\n"
+      , "\\hline\n"
+      , "\\endfirsthead\n"
+      , "\\hline\n"
+      , "Date & ", T.intercalate " & " cols, " \\\\\n"
+      , "\\hline\n"
+      , "\\endhead\n"
+      , "\\hline\n"
+      , "\\endfoot\n"
+      ]
+
+-- | 1行: 日付 + 各回のセル
+renderRow :: Int -> (Day, [[Int]]) -> Text
+renderRow nCols (day, cols0) =
+  let cols = take nCols (cols0 ++ repeat [])  -- 足りない分は空セルで埋める
+      dayTxt = formatDayJP day                -- 日付表示（好みに応じて変更）
+      cells  = map renderCell cols
+  in T.concat
+      [ dayTxt
+      , " & "
+      , T.intercalate " & " cells
+      , " \\\\\n"
+      , "\\hline\n"
+      ]
+
+-- | セル: [Int] を "1・2" のように連結。空なら空文字。
+-- 区切りを "," にしたいなら sep を "," に変えるだけでOK。
+renderCell :: [Int] -> Text
+renderCell xs =
+  let sep = ","
+  in case xs of
+       [] -> ""
+       _  -> T.intercalate sep (map (T.pack . show) xs)
+
+-- | 日付表示: "YYYY/MM/DD"
+formatDayJP :: Day -> Text
+formatDayJP d = T.pack (formatTime defaultTimeLocale "%Y/%m/%d" d)
+
+-- | LaTeXドキュメント全体を生成
+latexDoc :: Text -> Text
+latexDoc body =
+  "\\documentclass[a4paper,left=6mm,right=6mm,top=8mm,bottom=8mm]{bxjsarticle}\n"
+  <> "\\usepackage{booktabs}\n"
+  <> "\\usepackage{ltablex}\n"
+  <> "\\keepXColumns\n"
+  <> "\\usepackage{graphicx}\n"
+  <> "\\usepackage{array}\n"
+  <> "\\newcolumntype{Y}{>{\\centering\\arraybackslash}X}\n"
+  <> "\\begin{document}\n"
+  <> body
+  <> "\n\\end{document}\n"
+
+-- | 例: 最大232ユニット、2025-04-01から1年間のスケジュールを生成してPDF出力
+writePdf :: Schedule -> IO ()
+writePdf schedule = do
+  writeFile "table.tex" (T.unpack (latexDoc (renderTable schedule)))
+  callProcess "lualatex" ["table.tex"]
+  
 main :: IO ()
 main = do
   let day = case parseDay "2025-04-01" of
               Just d  -> d
               Nothing -> error "Invalid date format"
-  let days = daysFromDay day 330
+  let days = daysFromDay day 365
   let m = zip days (map (dayN'sWork 232) [1..])
-  print m
+  writePdf m
+  -- TIO.putStrLn (latexDoc (renderTable m))

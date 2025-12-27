@@ -68,6 +68,8 @@ executable sched
 
     -- Other library packages from which modules are imported.
     build-depends:    base ^>=4.21.0.0,
+                      process ^>=1.6,
+                      text ^>=2.1,
                       time ^>=1.14
 
     -- Directories containing source files.
