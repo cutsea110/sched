@@ -263,18 +263,14 @@ main = do
     putStr helpMessage
     exitSuccess
 
-  startDate <- case optStartDate opts of
-    Just d  -> return d
-    Nothing -> liftIO today
-  let unitMax    = optUnitMax opts
-  let n          = optNumOfDays opts
-  let repetition = optRepetitions opts
-  let noDate     = optNoDate opts
-  let out        = case optOutputFile opts of
-        Just fp -> fp
-        Nothing -> "sched-minai-style.tex"
-  let days = daysFromDay startDate n
+  startDate <- maybe (liftIO today) return $ optStartDate opts
+  let unit   = optUnitMax opts
+  let n      = optNumOfDays opts
+  let rep    = optRepetitions opts
+  let noDate = optNoDate opts
+  let out    = maybe "sched-minai-style.tex" id $ optOutputFile opts
+  let days   = daysFromDay startDate n
 
-  let m = zip days (map (dayN'sWork unitMax repetition) [1..])
+  let m = zip days (map (dayN'sWork unit rep) [1..])
 
   writePdf noDate m out
