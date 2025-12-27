@@ -1,5 +1,8 @@
 # sched
 
+[![Haskell](https://github.com/cutsea110/sched/actions/workflows/haskell.yml/badge.svg)](https://github.com/cutsea110/sched/actions/workflows/haskell.yml)
+[![Docker Cloud Build Status](https://img.shields.io/docker/pulls/cutsea110/sched?label=sched&logo=docker)](https://hub.docker.com/repository/docker/cutsea110/sched/general)
+
 薬袋式暗記シートの生成ツールです.
 
 ## 準備
@@ -33,3 +36,15 @@ OPTION
 薬袋式英単語暗記法におけるシートを生成したい場合は -u -d -r は指定する必要はありません.
 書籍の指示通りに日付欄を空白にしたい場合には -n オプションを指定してください.
 その他、他の暗記に薬袋式を応用したい場合にはユニット数や繰り返し回数、何日間に渡って計画を組むかを好きに指定してください.
+
+## Docker イメージ作成
+
+```bash
+docker buildx build --rm --load -t cutsea110/sched:0.1.0 .
+```
+
+## Docker で実行
+
+```bash
+docker run -v ${PWD}:/work -it --rm cutsea110/sched:0.1.0 -n -o /work/sheet
+```
