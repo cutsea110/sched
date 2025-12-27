@@ -45,7 +45,7 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends \
       texlive-base \
       texlive-latex-base texlive-latex-recommended texlive-latex-extra \
-      texlive-fonts-recommended \
+      texlive-fonts-recommended texlive-fonts-extra \
       texlive-lang-japanese \
       latexmk biber ghostscript fonts-noto-cjk; \
   fi; \

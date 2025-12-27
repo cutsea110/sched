@@ -227,6 +227,8 @@ latexDoc body =
   <> "\\setlength{\\tabcolsep}{2pt}\n"
   <> "\\renewcommand{\\arraystretch}{0.95}\n"
   <> "\\newcommand{\\smallcell}[1]{{\\scriptsize #1}}\n"
+  <> "\\usepackage{fontspec}\n"
+  <> "\\setmainfont{Comic Neue}\n"
 
   <> "\\begin{document}\n"
   <> body
