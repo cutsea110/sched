@@ -112,7 +112,7 @@ renderHeader nCols =
 renderRow :: Int -> (Day, [[Int]]) -> Text
 renderRow nCols (day, cols0) =
   let cols = take nCols (cols0 ++ repeat [])  -- 足りない分は空セルで埋める
-      dayTxt = formatDayJP day                -- 日付表示（好みに応じて変更）
+      dayTxt = formatDay day                -- 日付表示（好みに応じて変更）
       cells  = map renderCell cols
   in T.concat
       [ dayTxt
@@ -146,8 +146,8 @@ renderCell xs = case xs of
         chunks2 (u:v:rs) = (u <> ", " <> v) : chunks2 rs
 
 -- | 日付表示: "YYYY/MM/DD"
-formatDayJP :: Day -> Text
-formatDayJP d = T.pack (formatTime defaultTimeLocale "%Y/%m/%d" d)
+formatDay :: Day -> Text
+formatDay d = T.pack (formatTime defaultTimeLocale "'%y %_m/%_d" d)
 
 -- | LaTeXドキュメント全体を生成
 latexDoc :: Text -> Text
