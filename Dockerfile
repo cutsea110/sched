@@ -44,12 +44,15 @@ RUN set -eux; \
   else \
     apt-get install -y --no-install-recommends \
       texlive-base \
-      texlive-latex-base texlive-latex-recommended texlive-latex-extra \
+      texlive-latex-base texlive-latex-recommended texlive-latex-extra texlive-luatex \
       texlive-fonts-recommended texlive-fonts-extra \
       texlive-lang-japanese \
-      latexmk biber ghostscript fonts-noto-cjk; \
+      latexmk biber ghostscript fonts-noto-cjk fontconfig; \
   fi; \
   rm -rf /var/lib/apt/lists/*
+
+RUN mktexlsr
+RUN luaotfload-tool -u
 
 WORKDIR /work
 COPY --from=builder /out/sched /usr/local/bin/sched
