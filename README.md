@@ -10,7 +10,7 @@
 以下のツールが必要です.
 環境に応じて install してください.
 
-- LiveTex (lualatex を叩いている)
+- TexLive (lualatex, latexmk を叩いていて Comic Neue フォントを利用)
 
 ## 使用方法
 
