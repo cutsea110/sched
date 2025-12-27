@@ -51,8 +51,20 @@ RUN set -eux; \
   fi; \
   rm -rf /var/lib/apt/lists/*
 
+ENV HOME=/tmp \
+    XDG_CACHE_HOME=/tmp/.cache \
+    TEXMFVAR=/tmp/texmf-var \
+    TEXMFCACHE=/tmp/texmf-cache
+
+RUN set -eux; \
+    mkdir -p /tmp/.cache /tmp/texmf-var /tmp/texmf-cache; \
+    chmod 1777 /tmp; \
+    chmod -R a+rwx /tmp/.cache /tmp/texmf-var /tmp/texmf-cache
+
+# 既存のキャッシュ生成
 RUN mktexlsr
 RUN luaotfload-tool -u
+RUN fc-cache -f -v || true
 
 WORKDIR /work
 COPY --from=builder /out/sched /usr/local/bin/sched
