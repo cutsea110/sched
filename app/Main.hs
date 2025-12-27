@@ -3,7 +3,6 @@ module Main where
 
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.IO as TIO
 import Data.Time
 import Data.Time.Format ()
 import System.Process (callProcess)
@@ -176,10 +175,9 @@ writePdf schedule = do
   
 main :: IO ()
 main = do
-  let day = case parseDay "2025-04-01" of
+  let day = case parseDay "2026-01-01" of
               Just d  -> d
               Nothing -> error "Invalid date format"
   let days = daysFromDay day 365
   let m = zip days (map (dayN'sWork 232) [1..])
   writePdf m
-  -- TIO.putStrLn (latexDoc (renderTable m))
