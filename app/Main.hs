@@ -79,9 +79,10 @@ parseDay = parseTimeM True defaultTimeLocale "%Y-%m-%d"
 today :: IO Day
 today = utctDay <$> getCurrentTime
 
-type Unit = Int
-type Cycle = Int
-type Schedule = [(Day, [[Unit]])]
+type Unit     = Int
+type Cycle    = Int
+type DayItem  = (Day, [[Unit]])
+type Schedule = [DayItem]
 
 
 dayN'sWork :: Unit      -- ^ Maximum unit number
@@ -143,7 +144,10 @@ lookupWork m dateStr = case parseDay dateStr of
   Nothing  -> error $ "Invalid date format: " ++ dateStr
 
 -- | 列数を明示してレンダリング（例: 18）
-renderTable :: Bool -> Int -> [(Day, [[Int]])] -> Text
+renderTable :: Bool          -- ^ 日付非表示フラグ
+            -> Int           -- ^ 最大列数
+            -> Schedule      -- ^ スケジュールデータ
+            -> Text
 renderTable noDate maxCols rows =
   let nCols = min maxCols (max 0 (maximum (0 : map (length . snd) rows)))
       header = renderHeader nCols
@@ -173,7 +177,10 @@ renderHeader nCols =
       ]
 
 -- | 1行: 日付 + 各回のセル
-renderRow :: Bool -> Int -> (Day, [[Int]]) -> Text
+renderRow :: Bool            -- ^ 日付非表示フラグ
+          -> Int             -- ^ 列数
+          -> DayItem         -- ^ 1行分のデータ
+          -> Text
 renderRow noDate nCols (day, cols0) =
   let cols = take nCols (cols0 ++ repeat [])  -- 足りない分は空セルで埋める
       dayTxt | noDate    = T.pack "\\texttt{  /  /  }"
@@ -235,7 +242,10 @@ latexDoc body =
   <> "\n\\end{document}\n"
 
 -- | 例: 最大232ユニット、2025-04-01から1年間のスケジュールを生成してPDF出力
-writePdf :: Bool -> Schedule -> FilePath -> IO ()
+writePdf :: Bool       -- ^ 日付非表示フラグ
+         -> Schedule   -- ^ スケジュールデータ
+         -> FilePath   -- ^ 出力ファイルパス
+         -> IO ()
 writePdf noDate schedule fp = do
   writeFile fp (T.unpack (latexDoc (renderTable noDate cols schedule)))
   callProcess "latexmk" [fp]
