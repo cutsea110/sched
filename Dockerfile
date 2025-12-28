@@ -31,9 +31,16 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # TeX Live + runtime deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
+    locales ca-certificates tzdata \
     libgmp10 libffi8 zlib1g \
+ && sed -i 's/^# *\(en_US.UTF-8 UTF-8\)/\1/' /etc/locale.gen \
+ && sed -i 's/^# *\(ja_JP.UTF-8 UTF-8\)/\1/' /etc/locale.gen \
+ && locale-gen \
  && rm -rf /var/lib/apt/lists/*
+
+ENV TZ=Asia/Tokyo
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
 
 RUN set -eux; \
   apt-get update; \

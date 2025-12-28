@@ -7,11 +7,13 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time
 import Data.Time.Format ()
+import GHC.IO.Encoding (setLocaleEncoding, setFileSystemEncoding, setForeignEncoding, utf8)
 import System.Console.GetOpt (OptDescr(..), ArgDescr(NoArg, ReqArg), ArgOrder(Permute)
                              , getOpt, usageInfo
                              )
 import System.Environment (getArgs)
 import System.Exit (exitSuccess)
+import System.IO (hSetEncoding, stdin, stdout, stderr)
 import System.Process (callProcess)
 
 data Options = Options
@@ -282,15 +284,32 @@ helpMessage = unlines
   , usageInfo "OPTION" options
   ]
 
+
+initUtf8 :: IO ()
+initUtf8 = do
+  -- ロケールに依存せず UTF-8 を使う
+  setLocaleEncoding utf8
+  setFileSystemEncoding utf8
+  setForeignEncoding utf8
+  -- 標準入出力も UTF-8 固定
+  hSetEncoding stdin  utf8
+  hSetEncoding stdout utf8
+  hSetEncoding stderr utf8
+
 main :: IO ()
 main = do
+  -- UTF-8 初期化
+  initUtf8
+  -- コマンドライン引数解析
   args <- getArgs
   (opts, _) <- compilerOpts args
 
+  -- ヘルプ表示
   when (optHelp opts) $ do
     putStr helpMessage
     exitSuccess
 
+  -- オプション取得
   startDate <- maybe (liftIO today) return $ optStartDate opts
   let unit   = optUnitMax opts
   let n      = optNumOfDays opts
@@ -300,6 +319,8 @@ main = do
   let out    = maybe "sched-minai-style.tex" id $ optOutputFile opts
   let days   = daysFromDay startDate n
 
+  -- スケジュール生成
   let m = zip days (map (dayN'sWork unit rep) [1..])
 
+  -- PDF出力
   writePdf noDate m title out
