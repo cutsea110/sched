@@ -235,7 +235,7 @@ latexDoc body = T.unlines
   , "\\renewcommand{\\arraystretch}{0.95}"
   , "\\newcommand{\\smallcell}[1]{{\\scriptsize #1}}"
   , "\\usepackage{fontspec}"
-  , "\\setmainfont{Comic Neue}"
+  , "\\setmainfont{Comic Neue}[UprightFeatures={FakeSlant=0.2}]"
 
   , "\\begin{document}"
   , body
