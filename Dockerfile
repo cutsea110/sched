@@ -47,7 +47,7 @@ RUN set -eux; \
       texlive-latex-base texlive-latex-recommended texlive-latex-extra texlive-luatex \
       texlive-fonts-recommended texlive-fonts-extra \
       texlive-lang-japanese \
-      latexmk biber ghostscript fonts-noto-cjk fontconfig; \
+      latexmk biber ghostscript fonts-noto-cjk fonts-mplus fontconfig; \
   fi; \
   rm -rf /var/lib/apt/lists/*
 
