@@ -300,11 +300,12 @@ main :: IO ()
 main = do
   -- UTF-8 初期化
   initUtf8
+
   -- コマンドライン引数解析
   args <- getArgs
   (opts, _) <- compilerOpts args
 
-  -- ヘルプ表示
+  -- ヘルプ表示 & 終了
   when (optHelp opts) $ do
     putStr helpMessage
     exitSuccess
@@ -320,7 +321,7 @@ main = do
   let days   = daysFromDay startDate n
 
   -- スケジュール生成
-  let m = zip days (map (dayN'sWork unit rep) [1..])
+  let m = zip days $ map (dayN'sWork unit rep) [1..]
 
   -- PDF出力
   writePdf noDate m title out
