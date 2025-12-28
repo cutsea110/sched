@@ -154,29 +154,29 @@ renderTable :: Bool          -- ^ 日付非表示フラグ
 renderTable noDate maxCols rows =
   let nCols = min maxCols (max 0 (maximum (0 : map (length . snd) rows)))
       header = renderHeader nCols
-      body   = T.concat (map (renderRow noDate nCols) rows)
-  in T.concat
-      [ "\\begin{tabularx}{\\linewidth}{|l", T.replicate nCols "|c", "|}\n"
+      body   = T.unlines (map (renderRow noDate nCols) rows)
+  in T.unlines
+      [ "\\begin{tabularx}{\\linewidth}{|l", T.replicate nCols "|c", "|}"
       , header
       , body
-      , "\\end{tabularx}\n"
+      , "\\end{tabularx}"
       ]
 
 -- | ヘッダ: 日付 + 1回目..n回目
 renderHeader :: Int -> Text
 renderHeader nCols =
   let cols = [T.pack (show i) | i <- [1..nCols]]
-  in T.concat
-      [ "\\hline\n"
-      , "Date & ", T.intercalate " & " cols, " \\\\\n"
-      , "\\hline\n"
-      , "\\endfirsthead\n"
-      , "\\hline\n"
-      , "Date & ", T.intercalate " & " cols, " \\\\\n"
-      , "\\hline\n"
-      , "\\endhead\n"
-      , "\\hline\n"
-      , "\\endfoot\n"
+  in T.unlines
+      [ "\\hline"
+      , "Date & ", T.intercalate " & " cols, " \\\\"
+      , "\\hline"
+      , "\\endfirsthead"
+      , "\\hline"
+      , "Date & ", T.intercalate " & " cols, " \\\\"
+      , "\\hline"
+      , "\\endhead"
+      , "\\hline"
+      , "\\endfoot"
       ]
 
 -- | 1行: 日付 + 各回のセル
@@ -189,12 +189,9 @@ renderRow noDate nCols (day, cols0) =
       dayTxt | noDate    = T.pack "\\texttt{  /  /  }"
              | otherwise = formatDay day                -- 日付表示（好みに応じて変更）
       cells  = map renderCell cols
-  in T.concat
-      [ dayTxt
-      , " & "
-      , T.intercalate " & " cells
-      , " \\\\\n"
-      , "\\hline\n"
+  in T.unlines
+      [ dayTxt <> " & " <> T.intercalate " & " cells <> " \\\\"
+      , "\\hline"
       ]
 
 -- | セル: [Int] を "1・2" のように連結。空なら空文字。
@@ -226,23 +223,24 @@ formatDay d = T.pack (formatTime defaultTimeLocale "'%y %_m/%_d" d)
 
 -- | LaTeXドキュメント全体を生成
 latexDoc :: Text -> Text
-latexDoc body =
-  "\\documentclass[a4paper]{bxjsarticle}\n"
-  <> "\\geometry{left=6mm,right=6mm,top=8mm,bottom=8mm}\n"
-  <> "\\usepackage{ltablex}\n"
-  <> "\\keepXColumns\n"
-  <> "\\usepackage{array}\n"
-  <> "\\usepackage{makecell}\n"
-  <> "\\renewcommand\\tabularxcolumn[1]{m{#1}}\n"
-  <> "\\setlength{\\tabcolsep}{2pt}\n"
-  <> "\\renewcommand{\\arraystretch}{0.95}\n"
-  <> "\\newcommand{\\smallcell}[1]{{\\scriptsize #1}}\n"
-  <> "\\usepackage{fontspec}\n"
-  <> "\\setmainfont{Comic Neue}\n"
+latexDoc body = T.unlines
+  [ "\\documentclass[a4paper]{bxjsarticle}"
+  , "\\geometry{left=6mm,right=6mm,top=8mm,bottom=8mm}"
+  , "\\usepackage{ltablex}"
+  , "\\keepXColumns"
+  , "\\usepackage{array}"
+  , "\\usepackage{makecell}"
+  , "\\renewcommand\\tabularxcolumn[1]{m{#1}}"
+  , "\\setlength{\\tabcolsep}{2pt}"
+  , "\\renewcommand{\\arraystretch}{0.95}"
+  , "\\newcommand{\\smallcell}[1]{{\\scriptsize #1}}"
+  , "\\usepackage{fontspec}"
+  , "\\setmainfont{Comic Neue}"
 
-  <> "\\begin{document}\n"
-  <> body
-  <> "\n\\end{document}\n"
+  , "\\begin{document}"
+  , body
+  , "\\end{document}"
+  ]
 
 -- | 例: 最大232ユニット、2025-04-01から1年間のスケジュールを生成してPDF出力
 writePdf :: Bool       -- ^ 日付非表示フラグ
