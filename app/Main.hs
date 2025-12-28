@@ -20,6 +20,7 @@ data Options = Options
   , optNumOfDays   :: Int            -- ^ スケジュール日数
   , optRepetitions :: Int            -- ^ 繰り返し回数
   , optNoDate      :: Bool           -- ^ 日付非表示
+  , optTitle       :: Maybe String   -- ^ タイトル
   , optOutputFile  :: Maybe FilePath -- ^ 出力ファイル名
   , optHelp        :: Bool           -- ^ ヘルプ表示
   }
@@ -31,6 +32,7 @@ defaultOptions = Options
   , optNumOfDays   = 365
   , optRepetitions = 18
   , optNoDate      = False
+  , optTitle       = Nothing
   , optOutputFile  = Nothing
   , optHelp        = False
   }
@@ -56,6 +58,10 @@ options =
   , Option ['n'] ["no-date"]
     (NoArg (\opt -> opt { optNoDate = True }))
     "Do not display dates in the table"
+
+  , Option ['t'] ["title"]
+    (ReqArg (\arg opt -> opt { optTitle = Just arg }) "TITLE")
+    "Title to display in the header"
 
   , Option ['o'] ["output"]
     (ReqArg (\arg opt -> opt { optOutputFile = Just arg }) "FILE")
@@ -222,9 +228,10 @@ formatDay :: Day -> Text
 formatDay d = T.pack (formatTime defaultTimeLocale "'%y %_m/%_d" d)
 
 -- | LaTeXドキュメント全体を生成
-latexDoc :: Text -> Text
-latexDoc body = T.unlines
+latexDoc :: Text -> Text -> Text
+latexDoc ttl body = T.unlines
   [ "\\documentclass[a4paper]{bxjsarticle}"
+  , "\\usepackage{fancyhdr}"
   , "\\geometry{left=6mm,right=6mm,top=8mm,bottom=8mm}"
   , "\\usepackage{ltablex}"
   , "\\keepXColumns"
@@ -235,7 +242,15 @@ latexDoc body = T.unlines
   , "\\renewcommand{\\arraystretch}{0.95}"
   , "\\newcommand{\\smallcell}[1]{{\\scriptsize #1}}"
   , "\\usepackage{fontspec}"
+  , "\\usepackage{luatexja}"
+  , "\\usepackage{luatexja-fontspec}"
   , "\\setmainfont{Comic Neue}[UprightFeatures={FakeSlant=0.2}]"
+  , "\\setmainjfont{M PLUS 1 Code}"
+
+  , "\\pagestyle{fancy}"
+  , "\\fancyhf{}"
+  , "\\fancyhead[R]{" <> ttl <> "}"
+  , "\\fancyfoot[C]{\\thepage}"
 
   , "\\begin{document}"
   , body
@@ -245,10 +260,11 @@ latexDoc body = T.unlines
 -- | 例: 最大232ユニット、2025-04-01から1年間のスケジュールを生成してPDF出力
 writePdf :: Bool       -- ^ 日付非表示フラグ
          -> Schedule   -- ^ スケジュールデータ
+         -> Text       -- ^ タイトル
          -> FilePath   -- ^ 出力ファイルパス
          -> IO ()
-writePdf noDate schedule fp = do
-  writeFile fp (T.unpack (latexDoc (renderTable noDate cols schedule)))
+writePdf noDate schedule ttl fp = do
+  writeFile fp (T.unpack (latexDoc ttl (renderTable noDate cols schedule)))
   callProcess "latexmk" [fp]
   where cols = foldl' (\acc (_, xs) -> acc `max` length xs) 0 schedule -- 全て同じ数なはず
 
@@ -280,9 +296,10 @@ main = do
   let n      = optNumOfDays opts
   let rep    = optRepetitions opts
   let noDate = optNoDate opts
+  let title  = maybe "薬袋式英単語暗記シート" T.pack $ optTitle opts
   let out    = maybe "sched-minai-style.tex" id $ optOutputFile opts
   let days   = daysFromDay startDate n
 
   let m = zip days (map (dayN'sWork unit rep) [1..])
 
-  writePdf noDate m out
+  writePdf noDate m title out
