@@ -73,6 +73,9 @@ RUN mktexlsr
 RUN luaotfload-tool -u
 RUN fc-cache -f -v || true
 
+# キャッシュ生成後に再度開ける
+RUN chmod -R a+rwx /tmp/texmf-cache
+
 WORKDIR /work
 COPY --from=builder /out/sched /usr/local/bin/sched
 RUN chmod +x /usr/local/bin/sched

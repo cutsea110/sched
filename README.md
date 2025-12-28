@@ -46,7 +46,7 @@ docker buildx build --rm --load -t cutsea110/sched:0.6.0 .
 ## Docker で実行
 
 ```bash
-docker run -e TZ=Asia/Tokyo -v ${PWD}:/work --user "$(id -u):$(id -g)" -it --rm cutsea110/sched:0.6.0 -o /work/sheet
+docker run -v ${PWD}:/work --user "$(id -u):$(id -g)" -it --rm cutsea110/sched:0.6.0 -o /work/sheet.tex
 ```
 
 ## Docker の更新
