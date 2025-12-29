@@ -5,14 +5,10 @@ import Control.Monad (when)
 import Control.Monad.IO.Class (liftIO)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Time ( Day, addDays, defaultTimeLocale, formatTime, getCurrentTime
-                 , getCurrentTimeZone, localDay, parseTimeM, utcToLocalTime
-                 )
+import Data.Time ( Day, addDays, defaultTimeLocale, formatTime, getCurrentTime, getCurrentTimeZone, localDay, parseTimeM, utcToLocalTime)
 import Data.Time.Format ()
 import GHC.IO.Encoding (setLocaleEncoding, setFileSystemEncoding, setForeignEncoding, utf8)
-import System.Console.GetOpt ( OptDescr(..), ArgDescr(NoArg, ReqArg), ArgOrder(Permute)
-                             , getOpt, usageInfo
-                             )
+import System.Console.GetOpt ( OptDescr(..), ArgDescr(NoArg, ReqArg), ArgOrder(Permute), getOpt, usageInfo)
 import System.Environment (getArgs)
 import System.Exit (exitSuccess)
 import System.IO (hSetEncoding, stdin, stdout, stderr)
