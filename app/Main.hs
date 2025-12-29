@@ -4,7 +4,7 @@ module Main where
 import Control.Monad (when)
 import Control.Monad.IO.Class (liftIO)
 import qualified Data.Text as T
-import Data.Time ( Day, defaultTimeLocale, getCurrentTime, getCurrentTimeZone, localDay, parseTimeM, utcToLocalTime)
+import Data.Time (Day, defaultTimeLocale, getCurrentTime, getCurrentTimeZone, localDay, parseTimeM, utcToLocalTime)
 import Data.Time.Format ()
 import GHC.IO.Encoding (setLocaleEncoding, setFileSystemEncoding, setForeignEncoding, utf8)
 import System.Console.GetOpt ( OptDescr(..), ArgDescr(NoArg, ReqArg), ArgOrder(Permute), getOpt, usageInfo)
