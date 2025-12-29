@@ -119,14 +119,11 @@ dayN'sWork unitMax repetition n = map (filter p) $ map rule [1..repetition]
             diff1 = [0,1,4,9,17,29,46]
             diff2 = [67,88,109]
             diff4 = 129:[155,182..]
-               
-
 
 daysFromDay :: Day    -- ^ Starting day
             -> Int    -- ^ Number of days to generate
             -> [Day]  -- ^ List of days
 daysFromDay start n = take n $ iterate (addDays 1) start
-
 
 sched :: Unit      -- ^ Maximum unit number
       -> Int       -- ^ Number of repetitions
@@ -135,22 +132,6 @@ sched :: Unit      -- ^ Maximum unit number
       -> Schedule  -- ^ Generated schedule
 sched unitMax repetition start d = zip days (map (dayN'sWork unitMax repetition) [1..])
   where days = daysFromDay start d
-
-sched' :: Unit     -- ^ Maximum unit number
-       -> Int      -- ^ Number of repetitions
-       -> String   -- ^ Starting date as string
-       -> Int      -- ^ Number of days to schedule
-       -> Schedule -- ^ Generated schedule
-sched' unitMax repetition dateStr d = case parseDay dateStr of
-  Just start -> sched unitMax repetition start d
-  Nothing    -> error $ "Invalid date format: " ++ dateStr
-
-lookupWork :: Schedule       -- ^ Schedule to look up
-           -> String         -- ^ Date as string
-           -> Maybe [[Unit]] -- ^ Work scheduled for that date
-lookupWork m dateStr = case parseDay dateStr of
-  Just day -> lookup day m
-  Nothing  -> error $ "Invalid date format: " ++ dateStr
 
 -- | 列数を明示してレンダリング（例: 18）
 renderTable :: Bool          -- ^ 日付非表示フラグ
