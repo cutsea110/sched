@@ -312,17 +312,17 @@ main = do
     putStr helpMessage
     exitSuccess
 
-  -- オプション取得
+  -- スケジュール作成に必要なオプション取得
   startDate <- maybe (liftIO today) return $ optStartDate opts
   let unit   = optUnitMax opts
   let n      = optNumOfDays opts
   let rep    = optRepetitions opts
-  let noDate = optNoDate opts
-  let title  = maybe "薬袋式英単語暗記シート" T.pack $ optTitle opts
-  let out    = maybe "sched-minai-style.tex" id $ optOutputFile opts
-
   -- スケジュール生成
   let m = sched unit rep startDate n
 
+  -- PDF出力に必要なオプション取得
+  let noDate = optNoDate opts
+  let title  = maybe "薬袋式英単語暗記シート" T.pack $ optTitle opts
+  let out    = maybe "sched-minai-style.tex" id $ optOutputFile opts
   -- PDF出力
   writePdf noDate m title out
