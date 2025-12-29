@@ -320,10 +320,9 @@ main = do
   let noDate = optNoDate opts
   let title  = maybe "薬袋式英単語暗記シート" T.pack $ optTitle opts
   let out    = maybe "sched-minai-style.tex" id $ optOutputFile opts
-  let days   = daysFromDay startDate n
 
   -- スケジュール生成
-  let m = zip days $ map (dayN'sWork unit rep) [1..]
+  let m = sched unit rep startDate n
 
   -- PDF出力
   writePdf noDate m title out
