@@ -24,13 +24,14 @@
 Schedule Generator
 > cabal run sched -- [OPTIONS...]
 OPTION
-  -u NUM   --unit-max=NUM     Maximum unit number (default: 232)
-  -f DATE  --start-date=DATE  Schedule start date in YYYY-MM-DD format (default: today)
-  -d NUM   --days=NUM         Number of days to schedule (default: 365)
-  -r NUM   --repetitions=NUM  Number of repetitions (default: 18)
-  -n       --no-date          Do not display dates in the table
-  -o FILE  --output=FILE      Output file name (default: table.tex)
-  -h       --help             Show this help message
+  -u NUM    --unit-max=NUM     Maximum unit number (default: 232)
+  -f DATE   --start-date=DATE  Schedule start date in YYYY-MM-DD format (default: today)
+  -d NUM    --days=NUM         Number of days to schedule (default: 365)
+  -r NUM    --repetitions=NUM  Number of repetitions (default: 18)
+  -n        --no-date          Do not display dates in the table
+  -t TITLE  --title=TITLE      Title to display in the header
+  -o FILE   --output=FILE      Output file name (default: table.tex)
+  -h        --help             Show this help message
 ```
 
 薬袋式英単語暗記法におけるシートを生成したい場合は -u -d -r は指定する必要はありません.
