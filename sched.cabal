@@ -76,4 +76,5 @@ executable sched
                       
                       sched
     hs-source-dirs:   app
+    other-modules:    Opts
     default-language: Haskell2010
