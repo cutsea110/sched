@@ -85,7 +85,6 @@ renderCell xs = case xs of
 latexDoc :: Text -> Text -> Text
 latexDoc ttl body = T.unlines
   [ "\\documentclass[a4paper]{bxjsarticle}"
-  , "\\usepackage{fancyhdr}"
   , "\\geometry{left=6mm,right=6mm,top=8mm,bottom=8mm}"
   , "\\usepackage{ltablex}"
   , "\\keepXColumns"
@@ -100,6 +99,7 @@ latexDoc ttl body = T.unlines
   , "\\usepackage{luatexja-fontspec}"
   , "\\setmainfont{Comic Neue}[UprightFeatures={FakeSlant=0.2}]"
   , "\\setmainjfont{M PLUS 1 Code}"
+  , "\\usepackage{fancyhdr}"
 
   , "\\pagestyle{fancy}"
   , "\\fancyhf{}"
