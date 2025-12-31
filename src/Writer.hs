@@ -18,32 +18,30 @@ renderTable :: Bool          -- ^ 日付非表示フラグ
             -> Schedule      -- ^ スケジュールデータ
             -> Text
 renderTable noDate maxCols rows =
-  let nCols = min maxCols (max 0 (maximum (0 : map (length . snd) rows)))
-      header = renderHeader nCols
-      body   = T.unlines (map (renderRow noDate nCols) rows)
-  in T.unlines
-      [ "\\begin{tabularx}{\\linewidth}{|l", T.replicate nCols "|c", "|}"
-      , header
-      , body
-      , "\\end{tabularx}"
-      ]
+  T.unlines [ "\\begin{tabularx}{\\linewidth}{|l", T.replicate nCols "|c", "|}"
+            , header
+            , body
+            , "\\end{tabularx}"
+            ]
+  where nCols  = min maxCols (max 0 (maximum (0 : map (length . snd) rows)))
+        header = renderHeader nCols
+        body   = T.unlines (map (renderRow noDate nCols) rows)
 
 -- | ヘッダ: 日付 + 1回目..n回目
 renderHeader :: Int -> Text
 renderHeader nCols =
-  let cols = [T.pack (show i) | i <- [1..nCols]]
-  in T.unlines
-      [ "\\hline"
-      , "Date & ", T.intercalate " & " cols, " \\\\"
-      , "\\hline"
-      , "\\endfirsthead"
-      , "\\hline"
-      , "Date & ", T.intercalate " & " cols, " \\\\"
-      , "\\hline"
-      , "\\endhead"
-      , "\\hline"
-      , "\\endfoot"
-      ]
+  T.unlines [ "\\hline"
+            , "Date & ", T.intercalate " & " cols, " \\\\"
+            , "\\hline"
+            , "\\endfirsthead"
+            , "\\hline"
+            , "Date & ", T.intercalate " & " cols, " \\\\"
+            , "\\hline"
+            , "\\endhead"
+            , "\\hline"
+            , "\\endfoot"
+            ]
+  where cols = [T.pack (show i) | i <- [1..nCols]]
 
 -- | 1行: 日付 + 各回のセル
 renderRow :: Bool            -- ^ 日付非表示フラグ
@@ -51,14 +49,13 @@ renderRow :: Bool            -- ^ 日付非表示フラグ
           -> DayItem         -- ^ 1行分のデータ
           -> Text
 renderRow noDate nCols (day, cols0) =
-  let cols = take nCols (cols0 ++ repeat [])  -- 足りない分は空セルで埋める
-      dayTxt | noDate    = T.pack "\\texttt{  /  /  }"
-             | otherwise = formatDay day                -- 日付表示（好みに応じて変更）
-      cells  = map renderCell cols
-  in T.unlines
-      [ dayTxt <> " & " <> T.intercalate " & " cells <> " \\\\"
-      , "\\hline"
-      ]
+  T.unlines [ dayTxt <> " & " <> T.intercalate " & " cells <> " \\\\"
+            , "\\hline"
+            ]
+  where cols   = take nCols (cols0 ++ repeat [])  -- 足りない分は空セルで埋める
+        dayTxt | noDate    = T.pack "\\texttt{  /  /  }"
+               | otherwise = formatDay day                -- 日付表示（好みに応じて変更）
+        cells  = map renderCell cols
 
 -- | セル: [Int] を "1・2" のように連結。空なら空文字。
 -- 区切りを "," にしたいなら sep を "," に変えるだけでOK。
@@ -79,8 +76,9 @@ renderCell xs = case xs of
                <> "}"
   where tshow = T.pack . show
         wrapSmall s = "\\smallcell{" <> s <> "}"
-        chunks2 [] = []
-        chunks2 [u] = [u]
+
+        chunks2 []       = []
+        chunks2 [u]      = [u]
         chunks2 (u:v:rs) = (u <> ", " <> v) : chunks2 rs
 
 -- | LaTeXドキュメント全体を生成

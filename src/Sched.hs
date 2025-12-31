@@ -43,5 +43,6 @@ sched :: Unit      -- ^ Maximum unit number
       -> Day       -- ^ Starting day
       -> Int       -- ^ Number of days to schedule
       -> Schedule  -- ^ Generated schedule
-sched unitMax repetition start d = zip days (map (dayN'sWork unitMax repetition) [1..])
+sched unitMax repetition start d = zip days $ map work [1..]
   where days = daysFromDay start d
+        work = dayN'sWork unitMax repetition
