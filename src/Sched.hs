@@ -3,11 +3,11 @@ module Sched (sched) where
 import Data.Time (Day)
 import Types (Unit, Schedule)
 
-dayN'sWork :: Unit      -- ^ Maximum unit number
-           -> Int       -- ^ Repetition number
-           -> Int       -- ^ Day number
-           -> [[Unit]]  -- ^ List of cycles with units to work on that day
-dayN'sWork unitMax repetition n = map (filter p) $ map rule [1..repetition]
+workOn :: Unit      -- ^ Maximum unit number
+       -> Int       -- ^ Repetition number
+       -> Int       -- ^ Day number
+       -> [[Unit]]  -- ^ List of cycles with units to work on that day
+workOn unitMax repetition n = map (filter p) $ map rule [1..repetition]
   where p :: Int -> Bool
         p m = 0 < m && m <= unitMax
         rule :: Int -> [Unit]
@@ -38,4 +38,4 @@ sched :: Unit      -- ^ Maximum unit number
       -> Schedule  -- ^ Generated schedule
 sched unitMax repetition start n = zip days $ map work [1..]
   where days = take n [start..]
-        work = dayN'sWork unitMax repetition
+        work = workOn unitMax repetition
