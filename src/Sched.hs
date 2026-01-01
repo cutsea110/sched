@@ -1,14 +1,8 @@
 module Sched (sched) where
 
 import Data.Time (Day)
-import Data.Time.Calendar (addDays)
 
 import Types (Unit, Schedule)
-
-daysFromDay :: Day    -- ^ Starting day
-            -> Int    -- ^ Number of days to generate
-            -> [Day]  -- ^ List of days
-daysFromDay start n = take n $ iterate (addDays 1) start
 
 dayN'sWork :: Unit      -- ^ Maximum unit number
            -> Int       -- ^ Repetition number
@@ -43,6 +37,6 @@ sched :: Unit      -- ^ Maximum unit number
       -> Day       -- ^ Starting day
       -> Int       -- ^ Number of days to schedule
       -> Schedule  -- ^ Generated schedule
-sched unitMax repetition start d = zip days $ map work [1..]
-  where days = daysFromDay start d
+sched unitMax repetition start n = zip days $ map work [1..]
+  where days = take n [start..]
         work = dayN'sWork unitMax repetition
