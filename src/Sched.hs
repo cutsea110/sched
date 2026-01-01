@@ -1,7 +1,6 @@
 module Sched (sched) where
 
 import Data.Time (Day)
-
 import Types (Unit, Schedule)
 
 dayN'sWork :: Unit      -- ^ Maximum unit number
