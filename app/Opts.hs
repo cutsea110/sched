@@ -2,7 +2,7 @@ module Opts (Options(..), getOpts, options, today, usageInfo) where
 
 import Data.Time (Day, defaultTimeLocale, getCurrentTime, getCurrentTimeZone, localDay, parseTimeM, utcToLocalTime)
 import Data.Time.Format ()
-import System.Console.GetOpt ( OptDescr(..), ArgDescr(NoArg, ReqArg), ArgOrder(Permute), getOpt, usageInfo)
+import System.Console.GetOpt (OptDescr(..), ArgDescr(NoArg, ReqArg), ArgOrder(Permute), getOpt, usageInfo)
 import System.Environment (getArgs)
 
 data Options = Options
