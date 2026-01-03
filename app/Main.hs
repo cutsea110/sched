@@ -2,7 +2,6 @@
 module Main where
 
 import Control.Monad (when)
-import Control.Monad.IO.Class (liftIO)
 import qualified Data.Text as T
 import Data.Time.Format ()
 import GHC.IO.Encoding (setLocaleEncoding, setFileSystemEncoding, setForeignEncoding, utf8)
@@ -53,7 +52,7 @@ main = do
     exitSuccess
 
   -- スケジュール作成に必要なオプション取得
-  startDate <- maybe (liftIO today) return $ optStartDate opts
+  startDate <- maybe today pure $ optStartDate opts
   let unit   = optUnitMax opts
   let n      = optNumOfDays opts
   let rep    = optRepetitions opts

@@ -1,5 +1,6 @@
 module Opts (Options(..), getOpts, options, today, usageInfo) where
 
+import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Time (Day, defaultTimeLocale, getCurrentTime, getCurrentTimeZone, localDay, parseTimeM, utcToLocalTime)
 import Data.Time.Format ()
 import System.Console.GetOpt (OptDescr(..), ArgDescr(NoArg, ReqArg), ArgOrder(Permute), getOpt, usageInfo)
@@ -73,8 +74,8 @@ compilerOpts argv =
 parseDay :: String -> Maybe Day
 parseDay = parseTimeM True defaultTimeLocale "%Y-%m-%d"
   
-today :: IO Day
-today = do
+today :: MonadIO m => m Day
+today = liftIO $ do
   utcTime <- getCurrentTime
   tz      <- getCurrentTimeZone
   pure $ localDay $ utcToLocalTime tz utcTime
