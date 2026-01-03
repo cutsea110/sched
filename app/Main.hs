@@ -63,6 +63,6 @@ main = do
   -- PDF出力に必要なオプション取得
   let noDate = optNoDate opts
   let title  = maybe "薬袋式英単語暗記シート" T.pack $ optTitle opts
-  let out    = maybe "sched-minai-style.tex" id $ optOutputFile opts
+  let out    = maybe "minai-style-sched.tex" id $ optOutputFile opts
   -- PDF出力
   writePdf noDate m title out
