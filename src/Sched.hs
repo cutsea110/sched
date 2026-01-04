@@ -7,7 +7,7 @@ workOn :: Unit      -- ^ Maximum unit number
        -> Int       -- ^ Repetition number
        -> Int       -- ^ Day number
        -> [[Unit]]  -- ^ List of cycles with units to work on that day
-workOn unitMax repetition n = map (filter p) $ map rule [1..repetition]
+workOn unitMax repetition n = map (filter p . rule) [1..repetition]
   where p :: Int -> Bool
         p m = 0 < m && m <= unitMax
         rule :: Int -> [Unit]
