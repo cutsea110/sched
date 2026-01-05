@@ -7,7 +7,7 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import System.Process (callProcess)
 
-import Types (Schedule, DayItem(..))
+import Types (Schedule, Item(..))
 
 -- | 日付表示: "YYYY/MM/DD"
 formatDay :: Day -> Text
@@ -47,7 +47,7 @@ renderHeader nCols =
 -- | 1行: 日付 + 各回のセル
 renderRow :: Bool            -- ^ 日付非表示フラグ
           -> Int             -- ^ 列数
-          -> DayItem         -- ^ 1行分のデータ
+          -> Item            -- ^ 1行分のデータ
           -> Text
 renderRow noDate nCols item =
   T.unlines [ dayTxt <> " & " <> T.intercalate " & " cells <> " \\\\"

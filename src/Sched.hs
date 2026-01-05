@@ -1,7 +1,7 @@
 module Sched (sched) where
 
 import Data.Time (Day)
-import Types (DayItem(..), Unit, Schedule)
+import Types (Item(..), Unit, Schedule)
 
 workOn :: Unit      -- ^ Maximum unit number
        -> Int       -- ^ Repetition number
