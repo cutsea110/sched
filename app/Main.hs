@@ -22,7 +22,7 @@ helpMessage = unlines
   , "/____/\\___/_/ /_/\\___/\\__,_/   "
   , "                               "
   , "Schedule Generator"
-    , "> cabal run sched -- [OPTIONS...]"
+  , "> cabal run sched -- [OPTIONS...]"
   , usageInfo "OPTION" options
   ]
 
