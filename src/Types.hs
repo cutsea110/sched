@@ -1,8 +1,8 @@
-module Types (Unit, Cycle, DayItem, Schedule) where
+module Types (Unit, Cycle, DayItem(..), Schedule) where
 
 import Data.Time (Day)
 
 type Unit     = Int
 type Cycle    = Int
-type DayItem  = (Day, [[Unit]])
+data DayItem  = Item { date :: Day, units :: [[Unit]] }
 type Schedule = [DayItem]

@@ -7,7 +7,7 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import System.Process (callProcess)
 
-import Types (Schedule, DayItem)
+import Types (Schedule, DayItem(..))
 
 -- | 日付表示: "YYYY/MM/DD"
 formatDay :: Day -> Text
@@ -18,15 +18,15 @@ renderTable :: Bool          -- ^ 日付非表示フラグ
             -> Int           -- ^ 最大列数
             -> Schedule      -- ^ スケジュールデータ
             -> Text
-renderTable noDate maxCols rows =
+renderTable noDate maxCols items =
   T.unlines [ "\\begin{tabularx}{\\linewidth}{|l", T.replicate nCols "|c", "|}"
             , header
             , body
             , "\\end{tabularx}"
             ]
-  where nCols  = min maxCols (maximum (0 : map (length . snd) rows))
+  where nCols  = min maxCols (maximum (0 : map (length . units) items))
         header = renderHeader nCols
-        body   = T.unlines (renderRow noDate nCols <$> rows)
+        body   = T.unlines (renderRow noDate nCols <$> items)
 
 -- | ヘッダ: 日付 + 1回目..n回目
 renderHeader :: Int -> Text
@@ -49,13 +49,13 @@ renderRow :: Bool            -- ^ 日付非表示フラグ
           -> Int             -- ^ 列数
           -> DayItem         -- ^ 1行分のデータ
           -> Text
-renderRow noDate nCols (day, cols0) =
+renderRow noDate nCols item =
   T.unlines [ dayTxt <> " & " <> T.intercalate " & " cells <> " \\\\"
             , "\\hline"
             ]
-  where cols   = take nCols (cols0 ++ repeat [])  -- 足りない分は空セルで埋める
+  where cols   = take nCols (units item ++ repeat [])  -- 足りない分は空セルで埋める
         dayTxt | noDate    = T.pack "\\texttt{  /  /  }"
-               | otherwise = formatDay day                -- 日付表示（好みに応じて変更）
+               | otherwise = formatDay (date item)     -- 日付表示（好みに応じて変更）
         cells  = map renderCell cols
 
 -- | セル: [Int] を "1, 2" のように連結。空なら空文字。
@@ -120,5 +120,5 @@ writePdf :: Bool       -- ^ 日付非表示フラグ
 writePdf noDate schedule ttl fp = do
   T.writeFile fp (latexDoc ttl (renderTable noDate cols schedule))
   callProcess "latexmk" [fp]
-  where cols = foldl' (\acc (_, xs) -> acc `max` length xs) 0 schedule -- 全て同じ数なはず
+  where cols = foldr (max . length . units) 0 schedule -- 全て同じ数なはず
 
