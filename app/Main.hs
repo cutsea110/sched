@@ -2,6 +2,7 @@
 module Main where
 
 import Control.Monad (when)
+import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Data.Time.Format ()
 import GHC.IO.Encoding (setLocaleEncoding, setFileSystemEncoding, setForeignEncoding, utf8)
@@ -62,6 +63,6 @@ main = do
   -- PDF出力に必要なオプション取得
   let noDate = optNoDate opts
   let title  = maybe "薬袋式英単語暗記シート" T.pack $ optTitle opts
-  let out    = maybe "minai-style-sched.tex" id $ optOutputFile opts
+  let out    = fromMaybe "minai-vers-sched.tex" $ optOutputFile opts
   -- PDF出力
   writePdf noDate m title out
