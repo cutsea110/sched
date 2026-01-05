@@ -1,6 +1,7 @@
 module Opts (Options(..), getOpts, options, today, usageInfo) where
 
 import Control.Monad.IO.Class (MonadIO, liftIO)
+import Data.Function ((&))
 import Data.Time (Day, defaultTimeLocale, getCurrentTime, getCurrentTimeZone, localDay, parseTimeM, utcToLocalTime)
 import Data.Time.Format ()
 import System.Console.GetOpt (OptDescr(..), ArgDescr(NoArg, ReqArg), ArgOrder(Permute), getOpt, usageInfo)
@@ -67,8 +68,8 @@ options =
 compilerOpts :: [String] -> IO (Options, [String])
 compilerOpts argv =
   case getOpt Permute options argv of
-    (o, n, []  ) -> return (foldl' (flip id) defaultOptions o, n)
-    (_, _, errs) -> ioError (userError (concat errs ++ usageInfo header options))
+    (o, n, []  ) -> return (foldl' (&) defaultOptions o, n)
+    (_, _, errs) -> ioError $ userError (concat errs ++ usageInfo header options)
   where header = "Usage: cabal run ifl -- [OPTION...] <program-file>"
 
 parseDay :: String -> Maybe Day

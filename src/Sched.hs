@@ -7,22 +7,22 @@ workOn :: Unit      -- ^ Maximum unit number
        -> Int       -- ^ Repetition number
        -> Int       -- ^ Day number
        -> [[Unit]]  -- ^ List of cycles with units to work on that day
-workOn unitMax repetition n = map (filter p . rule) [1..repetition]
+workOn unitMax repetition n = map (filter p . unitsAt) [1..repetition]
   where p :: Int -> Bool
         p m = 0 < m && m <= unitMax
-        rule :: Int -> [Unit]
-        rule i | 1 <= i && i <= 7 =
-                 let a = diff1 !! (i-1)
-                 in [n-a]
-               | 8 <= i && i <= 10 =
-                 let a  = diff2 !! (i-8)
-                     n' = n-a
-                 in if odd n' then [n', n'+1] else []
-               | 11 <= i =
-                 let a  = diff4 !! (i-11)
-                     n' = n-a
-                 in if quad n' then [n'-3, n'-2, n'-1, n'] else []
-               | otherwise = error "unexpected index in rule"
+        unitsAt :: Int -> [Unit]
+        unitsAt i | 1 <= i && i <= 7 =
+                    let a = diff1 !! (i-1)
+                    in [n-a]
+                  | 8 <= i && i <= 10 =
+                    let a  = diff2 !! (i-8)
+                        n' = n-a
+                    in if odd n' then [n', n'+1] else []
+                  | 11 <= i =
+                    let a  = diff4 !! (i-11)
+                        n' = n-a
+                    in if quad n' then [n'-3, n'-2, n'-1, n'] else []
+                  | otherwise = error "unexpected index in rule"
           where
             quad :: Int -> Bool
             quad x = x `mod` 4 == 0
