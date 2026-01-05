@@ -4,6 +4,7 @@ module Writer (writePdf) where
 import Data.Time (Day, defaultTimeLocale, formatTime)
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import System.Process (callProcess)
 
 import Types (Schedule, DayItem)
@@ -23,9 +24,9 @@ renderTable noDate maxCols rows =
             , body
             , "\\end{tabularx}"
             ]
-  where nCols  = min maxCols (max 0 (maximum (0 : map (length . snd) rows)))
+  where nCols  = min maxCols (maximum (0 : map (length . snd) rows))
         header = renderHeader nCols
-        body   = T.unlines (map (renderRow noDate nCols) rows)
+        body   = T.unlines (renderRow noDate nCols <$> rows)
 
 -- | ヘッダ: 日付 + 1回目..n回目
 renderHeader :: Int -> Text
@@ -57,8 +58,7 @@ renderRow noDate nCols (day, cols0) =
                | otherwise = formatDay day                -- 日付表示（好みに応じて変更）
         cells  = map renderCell cols
 
--- | セル: [Int] を "1・2" のように連結。空なら空文字。
--- 区切りを "," にしたいなら sep を "," に変えるだけでOK。
+-- | セル: [Int] を "1, 2" のように連結。空なら空文字。
 renderCell :: [Int] -> Text
 renderCell xs = case xs of
   []        -> ""
@@ -118,7 +118,7 @@ writePdf :: Bool       -- ^ 日付非表示フラグ
          -> FilePath   -- ^ 出力ファイルパス
          -> IO ()
 writePdf noDate schedule ttl fp = do
-  writeFile fp (T.unpack (latexDoc ttl (renderTable noDate cols schedule)))
+  T.writeFile fp (latexDoc ttl (renderTable noDate cols schedule))
   callProcess "latexmk" [fp]
   where cols = foldl' (\acc (_, xs) -> acc `max` length xs) 0 schedule -- 全て同じ数なはず
 
