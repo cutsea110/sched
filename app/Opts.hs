@@ -8,7 +8,7 @@ import System.Console.GetOpt (OptDescr(..), ArgDescr(NoArg, ReqArg), ArgOrder(Pe
 import System.Environment (getArgs)
 
 data Options = Options
-  { optUnitMax     :: Int            -- ^ 最大ユニット数
+  { optNumOfUnits  :: Int            -- ^ ユニット数
   , optStartDate   :: Maybe Day      -- ^ スケジュール開始日
   , optNumOfDays   :: Int            -- ^ スケジュール日数
   , optRepetitions :: Int            -- ^ 繰り返し回数
@@ -20,7 +20,7 @@ data Options = Options
 
 defaultOptions :: Options
 defaultOptions = Options
-  { optUnitMax     = 232
+  { optNumOfUnits  = 232
   , optStartDate   = Nothing
   , optNumOfDays   = 365
   , optRepetitions = 18
@@ -33,8 +33,8 @@ defaultOptions = Options
 options :: [OptDescr (Options -> Options)]
 options =
   [ Option ['u'] ["unit-max"]
-    (ReqArg (\arg opt -> opt { optUnitMax = read arg }) "NUM")
-    "Maximum unit number (default: 232)"
+    (ReqArg (\arg opt -> opt { optNumOfUnits = read arg }) "NUM")
+    "Number of units (default: 232)"
 
   , Option ['f'] ["start-date"]
     (ReqArg (\arg opt -> opt { optStartDate = parseDay arg }) "DATE")

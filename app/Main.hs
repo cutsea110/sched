@@ -54,7 +54,7 @@ main = do
 
   -- スケジュール作成に必要なオプション取得
   startDate <- maybe today pure $ optStartDate opts
-  let unit   = optUnitMax opts
+  let unit   = optNumOfUnits opts
   let n      = optNumOfDays opts
   let rep    = optRepetitions opts
   -- スケジュール生成
