@@ -15,7 +15,7 @@ library
     exposed-modules:  Sched
                       Types
                       Writer
-    build-depends:    base ^>=4.21.0.0,
+    build-depends:    base ^>=4.22.0.0,
                       process ^>=1.6,
                       text ^>=2.1,
                       time ^>=1.14
@@ -27,7 +27,7 @@ executable sched
     -- Import common warning flags.
     import:           warnings
     main-is:          Main.hs
-    build-depends:    base ^>=4.21.0.0,
+    build-depends:    base ^>=4.22.0.0,
                       process ^>=1.6,
                       text ^>=2.1,
                       time ^>=1.14,

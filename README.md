@@ -41,19 +41,19 @@ OPTION
 ## Docker イメージ作成
 
 ```bash
-docker buildx build --rm --load -t cutsea110/sched:0.6.8 .
+docker buildx build --rm --load -t cutsea110/sched:0.6.9 .
 ```
 
 ## Docker で実行
 
 ```bash
-docker run -v ${PWD}:/work --user "$(id -u):$(id -g)" -it --rm cutsea110/sched:0.6.8 -o /work/sheet.tex
+docker run -v ${PWD}:/work --user "$(id -u):$(id -g)" -it --rm cutsea110/sched:0.6.9 -o /work/sheet.tex
 ```
 
 ## Docker の更新
 
 ```bash
 docker login
-docker push cutsea110/sched:0.6.8
+docker push cutsea110/sched:0.6.9
 ```
 

@@ -1,7 +1,7 @@
 # ---- builder (GHCあり) ----
 FROM debian:bookworm-slim AS builder
-ARG GHC_VERSION=9.12.2
-ARG CABAL_VERSION=3.14.2.0
+ARG GHC_VERSION=9.14.1
+ARG CABAL_VERSION=3.16.1.0
 ENV DEBIAN_FRONTEND=noninteractive
 ENV BOOTSTRAP_HASKELL_NONINTERACTIVE=1
 ENV BOOTSTRAP_HASKELL_GHC_VERSION=${GHC_VERSION}
@@ -12,6 +12,7 @@ ENV BOOTSTRAP_HASKELL_ADJUST_BASHRC=0
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl git make \
     gcc g++ libc6-dev libffi-dev libgmp-dev zlib1g-dev pkg-config \
+    libncurses-dev libtinfo6 xz-utils \
  && rm -rf /var/lib/apt/lists/*
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
